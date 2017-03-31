@@ -3,7 +3,10 @@
 #use mode="wb" as param to downnload.file
 #2. Actually it may be a good idea to use mode="wb"
 #whenever you need to read a file in
-#3. Note use of col_types=cols_only(...)
+#3. Note use of col_types=cols_only(...) in q3()
+#4. q4() contains a simple example of using regexp fn (grepl in this case) with a filter
+#6. q5() contains simple use of table function
+#7. q5() contains simple use of cut2 fn from Hmisc package that takes as param fixed number of break groups
  #in q3
 ##ISSUSES: 
 # 1. The Codebook for question 1 downloads OK using
@@ -27,6 +30,14 @@
   if(!require(jpeg)){
     install.packages("jpeg")
     library(jpeg)
+  }
+  if(!require(readr)){
+    install.packages("readr")
+    library(readr)
+  }
+  if(!require(Hmisc)){
+    install.packages("Hmisc")
+    library(Hmisc)
   }
 }
 
@@ -66,7 +77,7 @@ q2<-function(){
   if(!exists("leekPic")){
     assign("leekPic",readJPEG("jeffLeekPic.jpg",native=T),pos=.GlobalEnv)
   }
-  print(str(leekPic))
+  return(leekPic%>%quantile(probs=c(0.30,0.80)))
 }
 
 q3<-function(){
@@ -88,9 +99,11 @@ q3<-function(){
 q4<-function(){
   merged$`Income Group`<-factor(merged$`Income Group`)
   assign("merged",merged,pos=.GlobalEnv)
-  aveRanks<-merged%>%group_by(`Income Group`)%>%summarise(aveRanks=mean(GDPRank))
-  print(aveRanks)
-  #print(sapply(merged,class)) for debugging
-  #print(merged$`Income Group`%>%summary) for debugging
-  
+  aveRanks<-merged%>%group_by(`Income Group`)%>%summarise(aveRanks=mean(GDPRank))%>%filter(grepl('High',`Income Group`))
+  return (aveRanks)
+}
+
+q5<-function(){
+  merged$GDPRankGroup<-cut2(merged$GDPRank,g=5)
+  return(table(merged$GDPRankGroup,merged$`Income Group`))
 }
